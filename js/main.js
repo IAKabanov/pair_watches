@@ -1,4 +1,6 @@
-let continueSending = false
+
+let continueSending = false;
+let signalTiming = 0;
 
 window.onload = function () {
     // TODO:: Do your initialization job
@@ -11,25 +13,51 @@ window.onload = function () {
 	} catch (ignore) {
 	}
     });
+    
 
     // Sample code
-    var textbox = document.querySelector('.contents');
-    textbox.addEventListener("click", function(){
-    	box = document.querySelector('#textbox');
-    	box.innerHTML = "touchstart";
-    		print("HERE!")
+    var sendsignal = document.querySelector("#sendsignal");
+    sendsignal.addEventListener("touchstart", function() {
+        navigator.vibrate(100000);
+        signalTiming = Date.now();
+        console.log("touchstart" + signalTiming);
     });
-    /*textbox.addEventListener("mouseup", function(){
-    	box = document.querySelector('#textbox');
-    	box.innerHTML = "touchend"
-    });*/
+    sendsignal.addEventListener("touchend", function() {
+        navigator.vibrate(0);
+        signalTiming = Date.now() - signalTiming;
+    	continueSending = false
+        console.log("touchend" + signalTiming);
+    	sendSignal(signalTiming)
+    });
+    
+    var getsignal = document.querySelector("#getsignal");
+    getsignal.addEventListener("click", function() {
+        getSignal()
+    });
     
 };
 
-
-
-function sendSignal() {
+function getSignal() {
+	const http = new XMLHttpRequest();
+    const url = "http://192.168.3.160:8080/";
+    http.open("GET", url);
+	http.send();
+    http.onreadystatechange=function() {
+    	console.log("onreadystatechange " + this.readyState + " " + this.status);
+    	if (this.readyState == 4 && this.status == 200) {
+    		console.log(http.response);
+    		navigator.vibrate(http.response);
+    	}
+    }
+	/*continueSending = true
 	while (continueSending) {
-		continueSending = false
-	}
+		navigator.vibrate(10);
+	}*/
+}
+
+function sendSignal(length) {
+	const http = new XMLHttpRequest();
+	const url = "http://192.168.3.160:8080/";
+	http.open("POST", url);
+	http.send(length);
 }
